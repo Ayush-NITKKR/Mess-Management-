@@ -15,6 +15,7 @@ const fileUpload = require("express-fileupload");
 const swaggerUi = require('swagger-ui-express');
 const YAML = require('yamljs');
 const path = require('path');
+const cors = require('cors');
 //Middleware 
 app.use(
     fileUpload({
@@ -22,6 +23,10 @@ app.use(
         tempFileDir:"/tmp",
     })
 )
+app.use(cors({
+    origin: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : true,
+    credentials: true
+}));
 app.use(cookieParser());
 app.use(express.json());
 
