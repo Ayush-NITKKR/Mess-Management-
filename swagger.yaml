@@ -5,6 +5,7 @@ info:
   description: OpenAPI specification for mess-management-2.
 servers:
   - url: http://localhost:4000
+  - url: https://mess-management-e181.onrender.com
 paths:
   /api/v1/auth/register:
     post:
