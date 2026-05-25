@@ -1,0 +1,371 @@
+openapi: 3.0.3
+info:
+  title: Mess Management API
+  version: 1.0.0
+  description: OpenAPI specification for mess-management-2.
+servers:
+  - url: http://localhost:4000
+paths:
+  /api/v1/auth/register:
+    post:
+      summary: Register user (OTP flow)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '200':
+          description: OTP sent
+        '201':
+          description: User created
+  /api/v1/auth/login:
+    post:
+      summary: Login user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login successful
+  /api/v1/auth/logout:
+    post:
+      summary: Logout user
+      responses:
+        '200':
+          description: Logged out
+  /api/v1/auth/getUserDetails:
+    get:
+      summary: Get user details (ADMIN)
+      security:
+        - cookieAuth: []
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: email
+          schema:
+            type: string
+        - in: query
+          name: rollNumber
+          schema:
+            type: string
+      responses:
+        '200':
+          description: User details
+  /api/v1/auth/getPendingUser:
+    get:
+      summary: Get unverified users (ADMIN)
+      security:
+        - cookieAuth: []
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Unverified users list
+  /api/v1/auth/verifyUser/{id}:
+    patch:
+      summary: Verify resident user (ADMIN)
+      security:
+        - cookieAuth: []
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: User verified
+  /api/v1/resident/resident-profile/{rollNumber}:
+    patch:
+      summary: Update resident profile
+      security:
+        - cookieAuth: []
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: rollNumber
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResidentProfileUpdate'
+      responses:
+        '200':
+          description: Profile updated
+  /fee-configs:
+    get:
+      summary: List fee configs
+      responses:
+        '200':
+          description: Fee configs
+  /fee-config/{id}:
+    get:
+      summary: Get fee config by id
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Fee config
+    patch:
+      summary: Update fee config (ADMIN)
+      security:
+        - cookieAuth: []
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FeeConfigUpdate'
+      responses:
+        '200':
+          description: Fee config updated
+  /fee-config:
+    post:
+      summary: Create fee config (ADMIN)
+      security:
+        - cookieAuth: []
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FeeConfigCreate'
+      responses:
+        '201':
+          description: Fee config created
+  /fee-config/{id}/deactivate:
+    patch:
+      summary: Deactivate fee config (ADMIN)
+      security:
+        - cookieAuth: []
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Fee config deactivated
+  /api/v1/extra/extra-product:
+    post:
+      summary: Create extra product (MUNEEM)
+      security:
+        - cookieAuth: []
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExtraProductCreate'
+      responses:
+        '201':
+          description: Extra product created
+  /api/v1/extra/Update-extra-product/{id}:
+    patch:
+      summary: Update extra product (MUNEEM)
+      security:
+        - cookieAuth: []
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExtraProductUpdate'
+      responses:
+        '200':
+          description: Extra product updated
+  /api/v1/extra/getActiveExtraProduct:
+    get:
+      summary: List active extra products
+      responses:
+        '200':
+          description: Active extra products
+  /api/v1/extra/addExtraProduct:
+    post:
+      summary: Add extra product for resident
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddExtraProduct'
+      responses:
+        '201':
+          description: Added extra item
+  /addRebait:
+    post:
+      summary: Create rebate (RESIDENT)
+      security:
+        - cookieAuth: []
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RebateCreate'
+      responses:
+        '201':
+          description: Rebate created
+  /api/v1/expences/daily-update:
+    post:
+      summary: Run daily update (ADMIN/MUNEEM)
+      security:
+        - cookieAuth: []
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Daily update result
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: token
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    RegisterRequest:
+      type: object
+      properties:
+        rollNumber:
+          type: string
+        password:
+          type: string
+        confirmPassword:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        role:
+          type: string
+        email:
+          type: string
+        otp:
+          type: string
+      required: [password, confirmPassword, firstName, lastName, email]
+    LoginRequest:
+      type: object
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+      required: [email, password]
+    ResidentProfileUpdate:
+      type: object
+      properties:
+        roomNumber:
+          type: string
+        phoneNumber:
+          type: string
+    FeeConfigCreate:
+      type: object
+      properties:
+        semesterName:
+          type: string
+        totalMessFee:
+          type: number
+        dailyMealRate:
+          type: number
+        startDate:
+          type: string
+          format: date
+        endDate:
+          type: string
+          format: date
+        isActive:
+          type: boolean
+      required: [semesterName, totalMessFee, dailyMealRate, startDate, endDate]
+    FeeConfigUpdate:
+      type: object
+      properties:
+        semesterName:
+          type: string
+        totalMessFee:
+          type: number
+        dailyMealRate:
+          type: number
+        startDate:
+          type: string
+          format: date
+        endDate:
+          type: string
+          format: date
+        isActive:
+          type: boolean
+    ExtraProductCreate:
+      type: object
+      properties:
+        name:
+          type: string
+        price:
+          type: number
+        isActive:
+          type: boolean
+      required: [name, price]
+    ExtraProductUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        price:
+          type: number
+        isActive:
+          type: boolean
+    AddExtraProduct:
+      type: object
+      properties:
+        rollNumber:
+          type: string
+        productId:
+          type: integer
+        quantity:
+          type: integer
+      required: [rollNumber, productId]
+    RebateCreate:
+      type: object
+      properties:
+        startDate:
+          type: string
+          format: date
+        endDate:
+          type: string
+          format: date
+        reason:
+          type: string
+      required: [startDate, endDate]
