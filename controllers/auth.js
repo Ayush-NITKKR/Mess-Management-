@@ -76,15 +76,28 @@ const registerUser = async (req, res) => {
 
       // send the mail
 
-      console.log(normalizedEmail);
+      
 
-      createMailer(normalizedEmail ,'Your Mess Management OTP',
-        `Your OTP for registration is ${generatedOtp}. It expires in 10 minutes.`,
-        `
-          <p>Your OTP for registration is <strong>${generatedOtp}</strong>.</p>
-          <p>This OTP expires in <strong>10 minutes</strong>.</p>
-        `
-      )
+      try {
+          await createMailer(
+              normalizedEmail,
+              'Your Mess Management OTP',
+              `Your OTP for registration is ${generatedOtp}. It expires in 10 minutes.`,
+              `
+                <p>Your OTP for registration is <strong>${generatedOtp}</strong>.</p>
+                <p>This OTP expires in <strong>10 minutes</strong>.</p>
+              `
+          );
+
+          console.log("Mail sent successfully");
+      } catch(err) {
+          console.error("Mail error:", err);
+
+          return res.status(500).json({
+              success: false,
+              message: "Failed to send OTP email"
+          });
+      }
 
 
       return res.status(200).json({
