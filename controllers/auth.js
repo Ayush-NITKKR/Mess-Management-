@@ -5,7 +5,67 @@ const supabase = require('../connections/supabase');
 const createMailer = require('../utility/mailSender');
 require("dotenv").config();
 
+const sendOtp = async (req,res) => {
+  try {
+    const { email } = req.body;
+    if (!process.env.MAIL_HOST || !process.env.MAIL_USER || !process.env.MAIL_PASS) {
+        return res.status(500).json({
+          message: 'Email service not configured. Please contact admin.'
+        })
+      }
+      const generatedOtp = Math.floor(100000 + Math.random() * 900000).toString()
+      const normalizedEmail = email.toLowerCase()
 
+        const otpExpiry = new Date(Date.now() + 10 * 60 * 1000);
+
+        const { data: createdOtp, error: createError } = await supabase
+            .from('Otp')
+            .insert({
+                email: normalizedEmail,
+                otp: generatedOtp,
+                otpExpiry: otpExpiry,
+                createdAt: new Date()
+            })
+            .select();
+       if(createError){
+        return res.status(400).json({
+            success:false,
+            message:"Otp is not registered"
+        })
+       }
+       try {
+          await createMailer(
+              normalizedEmail,
+              'Your Mess Management OTP',
+              `Your OTP for registration is ${generatedOtp}. It expires in 10 minutes.`,
+              `
+                <p>Your OTP for registration is <strong>${generatedOtp}</strong>.</p>
+                <p>This OTP expires in <strong>10 minutes</strong>.</p>
+              `
+          );
+
+          console.log("Mail sent successfully");
+      } catch(err) {
+          console.error("Mail error:", err);
+
+          return res.status(500).json({
+              success: false,
+              message: "Failed to send OTP email"
+          });
+      }
+      return res.status(200).json({
+        message: 'OTP sent to your email. Verify and retry registration.',
+        success: true
+      })
+    
+  } catch (error) {
+    return res.status(500).json({
+        message: 'something went wrong',
+        success: false,
+        error:error.message
+      })
+  }
+}
 
 const registerUser = async (req, res) => {
   try {
@@ -37,73 +97,6 @@ const registerUser = async (req, res) => {
     // Validate the password 
     if (password !== confirmPassword) {
       return res.status(400).json({ message: 'password is not matching' })
-    }
-    // OTP part
-    if (!otp) {
-      if (!process.env.MAIL_HOST || !process.env.MAIL_USER || !process.env.MAIL_PASS) {
-        return res.status(500).json({
-          message: 'Email service not configured. Please contact admin.'
-        })
-      }
-
-      const generatedOtp = Math.floor(100000 + Math.random() * 900000).toString()
-      const normalizedEmail = email.toLowerCase()
-
-      // delete any previous OTPs for this email
-      await supabase 
-        .from('Otp')
-        .delete()
-        .eq('email', normalizedEmail)
-
-      // insert new OTP record
-        const otpExpiry = new Date(Date.now() + 10 * 60 * 1000);
-
-        const { data: createdOtp, error: createError } = await supabase
-            .from('Otp')
-            .insert({
-                email: normalizedEmail,
-                otp: generatedOtp,
-                otpExpiry: otpExpiry,
-                createdAt: new Date()
-            })
-            .select();
-       if(createError){
-        return res.json({
-            success:false,
-            message:"Otp is not registered"
-        })
-       }
-
-      // send the mail
-
-      
-
-      try {
-          await createMailer(
-              normalizedEmail,
-              'Your Mess Management OTP',
-              `Your OTP for registration is ${generatedOtp}. It expires in 10 minutes.`,
-              `
-                <p>Your OTP for registration is <strong>${generatedOtp}</strong>.</p>
-                <p>This OTP expires in <strong>10 minutes</strong>.</p>
-              `
-          );
-
-          console.log("Mail sent successfully");
-      } catch(err) {
-          console.error("Mail error:", err);
-
-          return res.status(500).json({
-              success: false,
-              message: "Failed to send OTP email"
-          });
-      }
-
-
-      return res.status(200).json({
-        message: 'OTP sent to your email. Verify and retry registration.',
-        success: true
-      })
     }
     // OTP verification
 
@@ -335,7 +328,8 @@ const logoutUser = (req, res) => {
 module.exports = {
   registerUser,
   loginUser,
-  logoutUser
+  logoutUser,
+  sendOtp
 }
 
 

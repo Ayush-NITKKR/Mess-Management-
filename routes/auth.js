@@ -1,5 +1,5 @@
 const express = require('express')
-const { registerUser, loginUser, logoutUser } = require('../controllers/auth')
+const { registerUser, loginUser, logoutUser, sendOtp } = require('../controllers/auth')
 const { getUserDetails,getUnverifiedUsers,verifyUser } = require('../controllers/User')
 
 const {verifyToken , requireRole} = require("../middleware/auth");
@@ -9,6 +9,7 @@ const router = express.Router();
 router.post('/register', registerUser)
 router.post('/login', loginUser)
 router.post('/logout', logoutUser)
+router.post('/sendOtp', sendOtp);
 
 // Admin work
 router.get('/getUserDetails',verifyToken,requireRole(["ADMIN"]),getUserDetails);
