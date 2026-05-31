@@ -1,6 +1,5 @@
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
-const nodemailer = require('nodemailer')
 const supabase = require('../connections/supabase');
 const createMailer = require('../utility/mailSender');
 require("dotenv").config();
@@ -8,7 +7,13 @@ require("dotenv").config();
 const sendOtp = async (req,res) => {
   try {
     const { email } = req.body;
-    if (!process.env.MAIL_HOST || !process.env.MAIL_USER || !process.env.MAIL_PASS) {
+    if (!email) {
+        return res.status(400).json({
+          message: 'email is required',
+          success: false
+        })
+    }
+    if (!process.env.MAIL_USER || !process.env.MAIL_PASS) {
         return res.status(500).json({
           message: 'Email service not configured. Please contact admin.'
         })
